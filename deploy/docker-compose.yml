@@ -1,0 +1,137 @@
+version: '3.9'
+
+services:
+  # Base de données PostgreSQL
+  db:
+    image: postgres:15-alpine
+    container_name: matcha_db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - app_net
+
+  # Service Auth
+  auth_service:
+    build:
+      context: ../services/auth_service
+    container_name: auth_service
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      - JWT_SECRET=${JWT_SECRET}
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+    depends_on:
+      - db
+    networks:
+      - app_net
+
+  # Service Profile
+  profile_service:
+    build:
+      context: ../services/profile_service
+    container_name: profile_service
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+    depends_on:
+      - db
+    networks:
+      - app_net
+
+  # Service Matching
+  matching_service:
+    build:
+      context: ../services/matching_service
+    container_name: matching_service
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+    depends_on:
+      - db
+    networks:
+      - app_net
+
+  # Service Chat
+  chat_service:
+    build:
+      context: ../services/chat_service
+    container_name: chat_service
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+    depends_on:
+      - db
+    networks:
+      - app_net
+
+  # Service Notifications
+  notification_service:
+    build:
+      context: ../services/notification_service
+    container_name: notification_service
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+    depends_on:
+      - db
+    networks:
+      - app_net
+
+  # Frontend Next.js
+  frontend:
+    build:
+      context: ../frontend
+    container_name: frontend
+    env_file:
+      - .env
+    environment:
+      - NEXT_PUBLIC_API_URL=http://nginx
+    depends_on:
+      - auth_service
+      - profile_service
+      - matching_service
+      - chat_service
+      - notification_service
+    ports:
+      - 3000:3000
+    networks:
+      - app_net
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    ports:
+      - "8080:80"
+      - "8443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./certs:/etc/nginx/certs:ro # Si vous utilisez des certificats SSL
+    depends_on:
+      - frontend
+      - auth_service
+      - profile_service
+      - matching_service
+      - chat_service
+      - notification_service
+    networks:
+      - app_net
+
+volumes:
+  db_data:
+
+networks:
+  app_net:
+    driver: bridge

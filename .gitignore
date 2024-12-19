@@ -1,0 +1,59 @@
+# Environnements
+deploy/.env
+*.env
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Systèmes
+.DS_Store
+Thumbs.db
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Node.js
+node_modules/
+frontend/.next/
+frontend/dist/
+frontend/out/
+frontend/build/
+frontend/*.lock
+
+# Docker
+docker-compose.override.yml
+deploy/Dockerfile
+deploy/*.dockerfile
+deploy/.docker/
+deploy/certs/
+
+# IDEs and Editors
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Coverage
+coverage/
+*.lcov
+
+# Migrations
+services/*/migrations/
+
+# Pytest
+.cache/
+.pytest_cache/
+
+# Static et Media Files
+services/*/staticfiles/
+services/*/media/
+
+# Miscellaneous
+*.swp
+*~

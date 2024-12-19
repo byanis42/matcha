@@ -1,0 +1,12 @@
+fastapi==0.95.2
+uvicorn[standard]==0.22.0
+pydantic==1.10.7
+asyncpg==0.27.0
+python-dotenv==1.0.0
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+email-validator==1.3.1
+# Pour envoyer des emails (optionnel, sinon utilisez un service externe via API)
+# requests==2.31.0
+# Pour templating emails (optionnel)
+# jinja2==3.1.2
