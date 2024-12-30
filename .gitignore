@@ -57,3 +57,6 @@ services/*/media/
 # Miscellaneous
 *.swp
 *~
+
+# Plan
+plan.txt
