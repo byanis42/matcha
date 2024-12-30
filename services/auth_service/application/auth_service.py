@@ -5,11 +5,12 @@ from jose import JWTError, jwt
 from datetime import datetime, timedelta
 
 from services.auth_service.domain.models import User
+from services.auth_service.application.settings import settings
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-SECRET_KEY = "your-secret-key"  # Remplacez par une clé secrète sécurisée
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+SECRET_KEY = settings.secret_key
+ALGORITHM = settings.algorithm
+ACCESS_TOKEN_EXPIRE_MINUTES = settings.access_token_expire_minutes
 
 def get_password_hash(password):
     return pwd_context.hash(password)

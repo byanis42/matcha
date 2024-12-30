@@ -9,6 +9,8 @@ from services.auth_service.application.auth_service import (
 )
 from services.auth_service.domain.models import User
 
+from services.auth_service.application.settings import settings
+
 app = FastAPI()
 
 class UserCreate(BaseModel):
