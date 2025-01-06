@@ -11,7 +11,4 @@ class Settings(BaseSettings):
     smtp_user: str
     smtp_password: str
 
-    # class Config:
-    #     env_file = ".env"  # Cette ligne peut rester commentée si Docker injecte les variables
-
 settings = Settings()
