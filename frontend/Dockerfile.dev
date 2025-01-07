@@ -1,0 +1,18 @@
+# frontend/Dockerfile.dev
+
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Installer les dépendances
+COPY package*.json ./
+RUN npm install
+
+# Copier le reste du code
+COPY . .
+
+# Exposer le port Next.js
+EXPOSE 3000
+
+# Démarrer le serveur de développement avec Hot Reloading
+CMD ["npm", "run", "dev"]

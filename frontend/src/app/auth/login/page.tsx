@@ -3,6 +3,10 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
+import Input from '@/components/Input';
+import Button from '@/components/Button';
+import Link from 'next/link';
+import Background from '@/components/Background';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -10,10 +14,19 @@ export default function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    // Validation améliorée
+    if (!username || !password) {
+      setError("Veuillez remplir tous les champs");
+      return;
+    }
+
+    setLoading(true);
 
     try {
       const resp = await axios.post(
@@ -25,51 +38,54 @@ export default function LoginPage() {
       localStorage.setItem('token', access_token);
       // Redirection
       router.push('/profile');
-    } catch (err) {
+    } catch (err: unknown) {
       console.error(err);
-      // pas de type any => on l'utilise => plus d'erreur "unused var"
       setError("Erreur de connexion");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <form
-        onSubmit={handleLogin}
-        className="bg-white p-6 rounded shadow-md w-full max-w-sm"
-      >
-        <h1 className="text-xl font-bold mb-4">Connexion</h1>
-        {error && <p className="text-red-500">{error}</p>}
+    <>
+      <Background />
+      <div className="min-h-screen flex items-center justify-center relative z-10">
+        <div className="bg-black bg-opacity-75 p-8 rounded-lg shadow-lg w-full max-w-md transform transition-transform duration-500 hover:scale-105">
+          <h1 className="text-3xl font-bold mb-6 text-center text-neon-red">Connexion</h1>
+          {error && <p className="text-red-500 mb-4 text-center">{error}</p>}
 
-        <div className="mb-4">
-          <label className="block font-medium">Nom d&apos;utilisateur</label>
-          <input
-            type="text"
-            className="border w-full px-3 py-2"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-          />
+          <form onSubmit={handleLogin}>
+            <Input
+              label="Nom d'utilisateur"
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+            />
+
+            <Input
+              label="Mot de passe"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+
+            <div className="flex items-center justify-between mt-6">
+              <Button type="submit" className="w-full bg-neon-red hover:bg-red-600">
+                {loading ? "Connexion..." : "Se connecter"}
+              </Button>
+            </div>
+          </form>
+
+          <p className="mt-6 text-center text-gray-300">
+            Vous n&rsquo;avez pas de compte ?{' '}
+            <Link href="/auth/register">
+              <a className="text-neon-red hover:text-red-600 font-semibold">Inscrivez-vous</a>
+            </Link>
+          </p>
         </div>
-
-        <div className="mb-4">
-          <label className="block font-medium">Mot de passe</label>
-          <input
-            type="password"
-            className="border w-full px-3 py-2"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-
-        <button
-          type="submit"
-          className="bg-blue-600 text-white px-4 py-2 rounded"
-        >
-          Se connecter
-        </button>
-      </form>
-    </div>
+      </div>
+    </>
   );
 }
