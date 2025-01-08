@@ -3,12 +3,12 @@
 import React from 'react';
 
 interface HeartProps {
-  size: number; // Taille du cœur en pixels
-  top: string; // Position verticale
-  left: string; // Position horizontale
-  animationDelay: string; // Délai de démarrage de l'animation
-  animationDuration: string; // Durée de l'animation
-  direction: 'left' | 'right'; // Direction du mouvement
+  size: number;
+  top: string;
+  left: string;
+  animationDelay: string;
+  animationDuration: string;
+  direction: 'left' | 'right';
 }
 
 const Heart: React.FC<HeartProps> = ({
@@ -33,7 +33,7 @@ const Heart: React.FC<HeartProps> = ({
     >
       <svg
         viewBox="0 0 32 29.6"
-        className="w-full h-full text-neon-red stroke-neon-red"
+        className="w-full h-full text-neon-pink"
       >
         <path
           fill="none"
@@ -43,40 +43,31 @@ const Heart: React.FC<HeartProps> = ({
       </svg>
       <style jsx>{`
         svg {
-          filter: drop-shadow(0 0 10px rgba(255, 7, 58, 0.7))
-                  drop-shadow(0 0 20px rgba(255, 7, 58, 0.5));
-          transform: rotate(0deg);
-          animation: move-${direction} infinite linear;
+          filter: drop-shadow(0 0 10px rgba(255, 0, 255, 0.7))
+                  drop-shadow(0 0 20px rgba(255, 0, 255, 0.5));
+          animation: rotate-${direction} ${animationDuration} linear infinite, move-${direction} ${animationDuration} ease-in-out infinite;
+        }
+
+        @keyframes rotate-left {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(-360deg); }
+        }
+
+        @keyframes rotate-right {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
         }
 
         @keyframes move-left {
-          0% {
-            transform: translate(0, 0) rotate(0deg);
-            opacity: 1;
-          }
-          50% {
-            transform: translate(-50px, -150px) rotate(-180deg);
-            opacity: 0.7;
-          }
-          100% {
-            transform: translate(-100px, -300px) rotate(-360deg);
-            opacity: 0;
-          }
+          0% { transform: translate(0, 0); opacity: 1; }
+          50% { transform: translate(-50px, -150px); opacity: 0.7; }
+          100% { transform: translate(-100px, -300px); opacity: 0; }
         }
 
         @keyframes move-right {
-          0% {
-            transform: translate(0, 0) rotate(0deg);
-            opacity: 1;
-          }
-          50% {
-            transform: translate(50px, -150px) rotate(180deg);
-            opacity: 0.7;
-          }
-          100% {
-            transform: translate(100px, -300px) rotate(360deg);
-            opacity: 0;
-          }
+          0% { transform: translate(0, 0); opacity: 1; }
+          50% { transform: translate(50px, -150px); opacity: 0.7; }
+          100% { transform: translate(100px, -300px); opacity: 0; }
         }
       `}</style>
     </div>
