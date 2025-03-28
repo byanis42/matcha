@@ -1,30 +1,15 @@
-from typing import Protocol, TypeVar, Generic, List, Dict, Any
+from typing import Protocol, TypeVar, Generic, Sequence
 
-T = TypeVar("T")  # Type générique pour l'entité
+T = TypeVar("T")
 
 
-class Repository(Protocol, Generic[T]):
-    """
-    Base repository interface that defines common operations.
-    All concrete repositories should implement this protocol.
-    """
+class Repository(Generic[T], Protocol):
+    async def get(self, id: str) -> T | None: ...
 
-    async def add(self, entity: T) -> None:
-        """Add a new entity to the repository."""
-        ...
+    async def list(self) -> Sequence[T]: ...
 
-    async def get(self, id_: str) -> T:
-        """Retrieve an entity by its ID."""
-        ...
+    async def add(self, entity: T) -> None: ...
 
-    async def update(self, entity: T) -> None:
-        """Update an existing entity."""
-        ...
+    async def update(self, entity: T) -> None: ...
 
-    async def remove(self, id_: str) -> None:
-        """Remove an entity from the repository."""
-        ...
-
-    async def list(self, filters: Dict[str, Any] = None) -> List[T]:
-        """List all entities in the repository, optionally filtered."""
-        ...
+    async def delete(self, id: str) -> None: ...

@@ -1,68 +1,52 @@
-import asyncpg
+from typing import final
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
+
 from matcha.domain.uow import MatchaUnitOfWork
-from matcha.infrastructure.services.auth_service import AuthService
-from matcha.infrastructure.services.email_service import EmailService
-from matcha.infrastructure.services.storage_service import StorageService
-from matcha.infrastructure.services.geolocation_service import GeolocationService
+from matcha.infrastructure.framework.uow import UnitOfWork
+from matcha.infrastructure.repositories.postgres_user_repository import PostgresUserRepository
+from matcha.infrastructure.repositories.postgres_profile_repository import PostgresProfileRepository
+from matcha.infrastructure.repositories.postgres_matching_repository import PostgresMatchingRepository
+from matcha.infrastructure.repositories.postgres_chat_repository import PostgresChatRepository
+from matcha.infrastructure.repositories.postgres_notification_repository import PostgresNotificationRepository
+from matcha.infrastructure.services.auth import AuthService
+from matcha.infrastructure.services.email import EmailService
+from matcha.infrastructure.services.geolocation import GeolocationService
+from matcha.infrastructure.services.storage import StorageService
+from matcha.infrastructure.services.notification import NotificationService
 from matcha.infrastructure.services.message_bus import MessageBus
-from matcha.infrastructure.services.notifications_service import NotificationsService
-from matcha.infrastructure.repositories.user_repository import PostgresUserRepository
-from matcha.infrastructure.repositories.profile_repository import PostgresProfileRepository
-from matcha.infrastructure.repositories.matching_repository import PostgresMatchingRepository
-from matcha.infrastructure.repositories.chat_repository import PostgresChatRepository
-from matcha.infrastructure.repositories.notification_repository import PostgresNotificationRepository
 
 
-class PostgresUnitOfWork(MatchaUnitOfWork):
-    """
-    PostgreSQL implementation of the Unit of Work pattern for production environment.
-    Handles transaction boundaries and provides access to repositories and services.
-    """
-
+class PostgresUnitOfWork(UnitOfWork, MatchaUnitOfWork):
     def __init__(self, connection_string: str):
-        # Connection info
         self.connection_string = connection_string
-        self.connection = None
-        self.transaction = None
+        self.engine = create_async_engine(connection_string)
+        self.session_factory = async_sessionmaker(self.engine, expire_on_commit=False)
 
-        # Initialize services
+        # Services
         self.auth_service = AuthService()
         self.email_service = EmailService()
         self.storage_service = StorageService()
         self.geolocation_service = GeolocationService()
         self.message_bus = MessageBus(self)
-        self.notifications_service = NotificationsService()
+        self.notifications_service = NotificationService()
 
-        # Repositories will be initialized during begin()
-        self.user_repository = None
-        self.profile_repository = None
-        self.matching_repository = None
-        self.chat_repository = None
-        self.notification_repository = None
-
-    async def bootstrap_repos(self):
-        """Initialize repositories with the active connection."""
-        self.user_repository = PostgresUserRepository(self.connection)
-        self.profile_repository = PostgresProfileRepository(self.connection)
-        self.matching_repository = PostgresMatchingRepository(self.connection)
-        self.chat_repository = PostgresChatRepository(self.connection)
-        self.notification_repository = PostgresNotificationRepository(self.connection)
+    async def bootstrap_repos(self, session: AsyncSession):
+        self.account = PostgresUserRepository(session)
+        self.profile = PostgresProfileRepository(session)
+        self.matching = PostgresMatchingRepository(session)
+        self.chat = PostgresChatRepository(session)
+        self.notification = PostgresNotificationRepository(session)
 
     async def begin(self):
-        """Start a new database transaction."""
-        self.connection = await asyncpg.connect(self.connection_string)
-        await self.bootstrap_repos()
-        self.transaction = self.connection.transaction()
-        await self.transaction.start()
+        self.session = self.session_factory()
+        await self.bootstrap_repos(self.session)
 
     async def commit(self):
-        """Commit the transaction and process queued domain events."""
-        await self.transaction.commit()
-        await self.connection.close()
-        await self.message_bus.handle_events()
+        await self.session.commit()
+        await self.session.close()
+        # Traiter les événements du domaine
+        await self.message_bus.process_events()
 
     async def rollback(self):
-        """Rollback the transaction and clear the event queue."""
-        await self.transaction.rollback()
-        await self.connection.close()
-        await self.message_bus.clear_queue()
+        await self.session.rollback()
+        await self.session.close()

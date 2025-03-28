@@ -1,54 +1,56 @@
+from dataclasses import dataclass, field
+from typing import Dict, List
+
 from matcha.domain.uow import MatchaUnitOfWork
-from matcha.infrastructure.services.mocks.auth_service import MockAuthService
-from matcha.infrastructure.services.mocks.email_service import MockEmailService
-from matcha.infrastructure.services.mocks.storage_service import MockStorageService
-from matcha.infrastructure.services.mocks.geolocation_service import MockGeolocationService
-from matcha.infrastructure.services.mocks.message_bus import MockMessageBus
-from matcha.infrastructure.services.mocks.notifications_service import MockNotificationsService
-from matcha.infrastructure.repositories.mocks.user_repository import InMemoryUserRepository
-from matcha.infrastructure.repositories.mocks.profile_repository import InMemoryProfileRepository
-from matcha.infrastructure.repositories.mocks.matching_repository import InMemoryMatchingRepository
-from matcha.infrastructure.repositories.mocks.chat_repository import InMemoryChatRepository
-from matcha.infrastructure.repositories.mocks.notification_repository import InMemoryNotificationRepository
+from matcha.infrastructure.framework.uow import UnitOfWork
+from matcha.infrastructure.repositories.in_memory_user_repository import InMemoryUserRepository
+from matcha.infrastructure.repositories.in_memory_profile_repository import InMemoryProfileRepository
+from matcha.infrastructure.repositories.in_memory_matching_repository import InMemoryMatchingRepository
+from matcha.infrastructure.repositories.in_memory_chat_repository import InMemoryChatRepository
+from matcha.infrastructure.repositories.in_memory_notification_repository import InMemoryNotificationRepository
+from matcha.infrastructure.services.test_auth import TestAuthService
+from matcha.infrastructure.services.test_email import TestEmailService
+from matcha.infrastructure.services.test_geolocation import TestGeolocationService
+from matcha.infrastructure.services.test_storage import TestStorageService
+from matcha.infrastructure.services.test_notification import TestNotificationService
+from matcha.infrastructure.services.test_message_bus import TestMessageBus
 
 
-class InMemoryUnitOfWork(MatchaUnitOfWork):
+@dataclass
+class TestUnitOfWork(UnitOfWork, MatchaUnitOfWork):
     """
-    In-memory implementation of the Unit of Work pattern for testing.
-    Uses in-memory repositories and mock services.
+    Implémentation du UnitOfWork pour les tests, utilisant des repositories en mémoire
+    et des services simulés.
     """
+    # Suivi des événements et des messages pour les tests
+    sent_emails: List[Dict] = field(default_factory=list)
+    sent_notifications: List[Dict] = field(default_factory=list)
+    processed_events: List[Dict] = field(default_factory=list)
 
     def __init__(self):
-        # Initialize state tracking
-        self.committed = False
-        self.rolled_back = False
+        # Services
+        self.auth_service = TestAuthService()
+        self.email_service = TestEmailService(self.sent_emails)
+        self.storage_service = TestStorageService()
+        self.geolocation_service = TestGeolocationService()
+        self.message_bus = TestMessageBus(self, self.processed_events)
+        self.notifications_service = TestNotificationService(self.sent_notifications)
 
-        # Initialize mock services
-        self.auth_service = MockAuthService()
-        self.email_service = MockEmailService()
-        self.storage_service = MockStorageService()
-        self.geolocation_service = MockGeolocationService()
-        self.message_bus = MockMessageBus(self)
-        self.notifications_service = MockNotificationsService()
-
-        # Initialize in-memory repositories
-        self.user_repository = InMemoryUserRepository()
-        self.profile_repository = InMemoryProfileRepository()
-        self.matching_repository = InMemoryMatchingRepository()
-        self.chat_repository = InMemoryChatRepository()
-        self.notification_repository = InMemoryNotificationRepository()
+        # Repositories
+        self.account = InMemoryUserRepository()
+        self.profile = InMemoryProfileRepository()
+        self.matching = InMemoryMatchingRepository()
+        self.chat = InMemoryChatRepository()
+        self.notification = InMemoryNotificationRepository()
 
     async def begin(self):
-        """Start a new "transaction" (resets state)."""
-        self.committed = False
-        self.rolled_back = False
+        # Rien à faire pour les tests en mémoire
+        pass
 
     async def commit(self):
-        """Mark the UoW as committed and process queued domain events."""
-        self.committed = True
-        await self.message_bus.handle_events()
+        # Traiter les événements du domaine
+        await self.message_bus.process_events()
 
     async def rollback(self):
-        """Mark the UoW as rolled back and clear event queue."""
-        self.rolled_back = True
-        await self.message_bus.clear_queue()
+        # Rien à faire pour les tests en mémoire
+        pass
