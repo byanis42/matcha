@@ -55,7 +55,6 @@ class UserLoginRequest(BaseModel):
 
 
 class EmailVerificationRequest(BaseModel):
-    user_id: int
     token: str
 
 
@@ -114,6 +113,7 @@ class RegisterResponse(BaseModel):
     email: str
     username: str
     verification_token: str
+    email_sent: bool
 
 
 class VerificationResponse(BaseModel):

@@ -7,6 +7,7 @@ from .matching_model import (
     VisitModel,
 )
 from .user_model import UserModel, UserProfileModel
+from .verification_token_model import VerificationTokenModel
 
 __all__ = [
     "UserModel",
@@ -19,4 +20,5 @@ __all__ = [
     "ConversationModel",
     "MessageModel",
     "NotificationModel",
+    "VerificationTokenModel",
 ]

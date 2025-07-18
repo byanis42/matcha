@@ -28,6 +28,17 @@ services:
     networks:
       - matcha_network
 
+  # Adminer for database management (much simpler than pgAdmin)
+  adminer:
+    image: adminer:latest
+    container_name: matcha_adminer
+    ports:
+      - "5050:8080"
+    depends_on:
+      - db
+    networks:
+      - matcha_network
+
   # Backend API
   backend:
     build:

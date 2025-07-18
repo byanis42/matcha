@@ -50,6 +50,7 @@ async def register(
             email=result["email"],
             username=result["username"],
             verification_token=result["verification_token"],
+            email_sent=result["email_sent"],
         )
 
     except ValidationException as e:
@@ -60,7 +61,10 @@ async def register(
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, detail=str(e)
         ) from None
-    except Exception:
+    except Exception as e:
+        print(f"Registration error: {type(e).__name__}: {str(e)}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Registration failed",

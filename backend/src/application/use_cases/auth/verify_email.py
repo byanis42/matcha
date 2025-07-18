@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Any
 
+from ....core.entities.verification_token import TokenType
 from ....core.repositories.unit_of_work import AbstractUnitOfWork
 from ....shared.exceptions import NotFoundException, ValidationException
 
@@ -15,11 +16,26 @@ class VerifyEmailUseCase:
         """
         try:
             async with self.uow:
-                user_id = verification_data["user_id"]
-                token = verification_data["token"]
+                token_str = verification_data["token"]
+
+                # Get verification token
+                verification_token = await self.uow.verification_tokens.get_by_token(token_str)
+                if not verification_token:
+                    raise ValidationException("Invalid verification token")
+
+                # Check if token is valid
+                if not verification_token.is_valid():
+                    if verification_token.is_expired():
+                        raise ValidationException("Verification token has expired")
+                    else:
+                        raise ValidationException("Verification token has already been used")
+
+                # Check if it's an email verification token
+                if verification_token.token_type != TokenType.EMAIL_VERIFICATION:
+                    raise ValidationException("Invalid token type")
 
                 # Get user
-                user = await self.uow.users.get_by_id(user_id)
+                user = await self.uow.users.get_by_id(verification_token.user_id)
                 if not user:
                     raise NotFoundException("User not found")
 
@@ -32,17 +48,16 @@ class VerifyEmailUseCase:
                         "email_verified": True,
                     }
 
-                # In a real implementation, you would validate the token here
-                # For now, we'll assume the token is valid if provided
-                if not token:
-                    raise ValidationException("Invalid verification token")
-
                 # Verify email
                 user.verify_email()
                 user.updated_at = datetime.utcnow()
 
-                # Update user in repository
+                # Mark token as used
+                verification_token.use_token()
+
+                # Update user and token in repository
                 updated_user = await self.uow.users.update(user)
+                await self.uow.verification_tokens.update(verification_token)
                 await self.uow.commit()
 
                 return {
