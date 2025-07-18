@@ -62,9 +62,9 @@ cd backend && uv run python test_entities.py
 ./dev.sh format
 
 # Backend specific
-cd backend && uv run black src/
+cd backend && uv run ruff check src/
+cd backend && uv run ruff format src/
 cd backend && uv run mypy src/
-cd backend && uv run flake8 src/
 
 # Frontend specific
 cd frontend && npm run lint
@@ -170,7 +170,7 @@ The codebase follows strict **Clean Architecture** with dependency inversion:
 **Development Tools:**
 - **Backend Testing**: pytest with async support, coverage reporting
 - **Frontend Testing**: Vitest with React Testing Library
-- **Code Quality**: Black (Python formatting), ESLint (JS/TS linting)
+- **Code Quality**: Ruff (Python linting/formatting), ESLint (JS/TS linting)
 - **Pre-commit Hooks**: Automated code quality checks
 - **Type Checking**: MyPy (Python), TypeScript (frontend)
 
@@ -206,6 +206,8 @@ The codebase follows strict **Clean Architecture** with dependency inversion:
 - **Clean Architecture**: Never import from outer layers to inner layers
 - **Domain Logic**: Keep business rules in domain entities, not in use cases
 - **Testing**: Write tests for all new domain entities and use cases
+- **Code Quality**: Always run linting checks before committing (`ruff check` + `ruff format`)
+- **Mandatory Testing**: Every feature/use case MUST have corresponding tests before implementation is considered complete
 
 ## Development Guidelines
 

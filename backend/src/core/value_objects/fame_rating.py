@@ -1,5 +1,6 @@
-from pydantic import BaseModel, field_validator
 from enum import Enum
+
+from pydantic import BaseModel, field_validator
 
 
 class FameLevel(Enum):
@@ -12,46 +13,46 @@ class FameLevel(Enum):
 
 class FameRating(BaseModel):
     value: float
-    
+
     def __init__(self, value: float):
         super().__init__(value=value)
-    
-    @field_validator('value')
+
+    @field_validator("value")
     @classmethod
     def validate_rating(cls, v):
         if not 0.0 <= v <= 5.0:
-            raise ValueError('Fame rating must be between 0.0 and 5.0')
+            raise ValueError("Fame rating must be between 0.0 and 5.0")
         return round(v, 2)
-    
+
     def __str__(self) -> str:
         return f"{self.value:.2f}"
-    
+
     def __float__(self) -> float:
         return self.value
-    
+
     def __eq__(self, other) -> bool:
         if isinstance(other, FameRating):
             return self.value == other.value
-        if isinstance(other, (int, float)):
+        if isinstance(other, int | float):
             return self.value == other
         return False
-    
+
     def __lt__(self, other) -> bool:
         if isinstance(other, FameRating):
             return self.value < other.value
-        if isinstance(other, (int, float)):
+        if isinstance(other, int | float):
             return self.value < other
         return False
-    
+
     def __le__(self, other) -> bool:
         return self < other or self == other
-    
+
     def __gt__(self, other) -> bool:
         return not self <= other
-    
+
     def __ge__(self, other) -> bool:
         return not self < other
-    
+
     @property
     def level(self) -> FameLevel:
         if self.value < 1.0:
@@ -64,11 +65,11 @@ class FameRating(BaseModel):
             return FameLevel.FAMOUS
         else:
             return FameLevel.LEGENDARY
-    
-    def increase(self, amount: float) -> 'FameRating':
+
+    def increase(self, amount: float) -> "FameRating":
         new_value = min(5.0, self.value + amount)
         return FameRating(new_value)
-    
-    def decrease(self, amount: float) -> 'FameRating':
+
+    def decrease(self, amount: float) -> "FameRating":
         new_value = max(0.0, self.value - amount)
         return FameRating(new_value)

@@ -1,6 +1,6 @@
-from pydantic import BaseModel, EmailStr, validator
-from typing import Optional
 from datetime import datetime
+
+from pydantic import BaseModel, ConfigDict, EmailStr, field_validator
 
 
 class UserRegisterRequest(BaseModel):
@@ -9,44 +9,48 @@ class UserRegisterRequest(BaseModel):
     password: str
     first_name: str
     last_name: str
-    
-    @validator('username')
+
+    @field_validator("username")
+    @classmethod
     def validate_username(cls, v):
         if not v or len(v) < 3:
-            raise ValueError('Username must be at least 3 characters long')
+            raise ValueError("Username must be at least 3 characters long")
         if len(v) > 50:
-            raise ValueError('Username cannot exceed 50 characters')
+            raise ValueError("Username cannot exceed 50 characters")
         return v.lower()
-    
-    @validator('password')
+
+    @field_validator("password")
+    @classmethod
     def validate_password(cls, v):
         if len(v) < 8:
-            raise ValueError('Password must be at least 8 characters long')
+            raise ValueError("Password must be at least 8 characters long")
         if not any(c.isupper() for c in v):
-            raise ValueError('Password must contain at least one uppercase letter')
+            raise ValueError("Password must contain at least one uppercase letter")
         if not any(c.islower() for c in v):
-            raise ValueError('Password must contain at least one lowercase letter')
+            raise ValueError("Password must contain at least one lowercase letter")
         if not any(c.isdigit() for c in v):
-            raise ValueError('Password must contain at least one digit')
+            raise ValueError("Password must contain at least one digit")
         return v
-    
-    @validator('first_name', 'last_name')
+
+    @field_validator("first_name", "last_name")
+    @classmethod
     def validate_name(cls, v):
         if not v or len(v) < 2:
-            raise ValueError('Name must be at least 2 characters long')
+            raise ValueError("Name must be at least 2 characters long")
         if len(v) > 50:
-            raise ValueError('Name cannot exceed 50 characters')
+            raise ValueError("Name cannot exceed 50 characters")
         return v.strip().title()
 
 
 class UserLoginRequest(BaseModel):
     identifier: str  # email or username
     password: str
-    
-    @validator('identifier')
+
+    @field_validator("identifier")
+    @classmethod
     def validate_identifier(cls, v):
         if not v or len(v) < 3:
-            raise ValueError('Email or username is required')
+            raise ValueError("Email or username is required")
         return v.lower()
 
 
@@ -63,17 +67,18 @@ class PasswordResetConfirmRequest(BaseModel):
     email: EmailStr
     token: str
     new_password: str
-    
-    @validator('new_password')
+
+    @field_validator("new_password")
+    @classmethod
     def validate_password(cls, v):
         if len(v) < 8:
-            raise ValueError('Password must be at least 8 characters long')
+            raise ValueError("Password must be at least 8 characters long")
         if not any(c.isupper() for c in v):
-            raise ValueError('Password must contain at least one uppercase letter')
+            raise ValueError("Password must contain at least one uppercase letter")
         if not any(c.islower() for c in v):
-            raise ValueError('Password must contain at least one lowercase letter')
+            raise ValueError("Password must contain at least one lowercase letter")
         if not any(c.isdigit() for c in v):
-            raise ValueError('Password must contain at least one digit')
+            raise ValueError("Password must contain at least one digit")
         return v
 
 
@@ -90,11 +95,10 @@ class UserResponse(BaseModel):
     last_name: str
     status: str
     email_verified: bool
-    last_seen: Optional[datetime] = None
+    last_seen: datetime | None = None
     created_at: datetime
-    
-    class Config:
-        from_attributes = True
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class TokenResponse(BaseModel):
@@ -122,7 +126,7 @@ class VerificationResponse(BaseModel):
 class PasswordResetResponse(BaseModel):
     message: str
     email: str
-    reset_token: Optional[str] = None  # Only for development
+    reset_token: str | None = None  # Only for development
 
 
 class MessageResponse(BaseModel):
@@ -131,4 +135,4 @@ class MessageResponse(BaseModel):
 
 class ErrorResponse(BaseModel):
     detail: str
-    error_code: Optional[str] = None
+    error_code: str | None = None
