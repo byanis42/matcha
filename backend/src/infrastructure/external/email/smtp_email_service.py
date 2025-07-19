@@ -18,7 +18,7 @@ class SMTPEmailService(EmailService):
         subject = "Verify Your Email - Matcha"
 
         # In development, we'll use a simple verification URL
-        verification_url = f"http://localhost:3000/verify-email?token={token}&email={email}"
+        verification_url = f"http://localhost:5173/verify-email?token={token}&email={email}"
 
         html_body = f"""
         <html>
@@ -56,7 +56,7 @@ class SMTPEmailService(EmailService):
         """Send password reset email"""
         subject = "Reset Your Password - Matcha"
 
-        reset_url = f"http://localhost:3000/reset-password?token={token}&email={email}"
+        reset_url = f"http://localhost:5173/reset-password?token={token}&email={email}"
 
         html_body = f"""
         <html>
@@ -112,15 +112,17 @@ class SMTPEmailService(EmailService):
     async def _send_email(self, to_email: str, subject: str, text_body: str, html_body: str) -> bool:
         """Send email using SMTP"""
         try:
-            # In development, we'll just log the email instead of actually sending it
-            if self.settings.ENVIRONMENT == "development":
-                print("\n📧 EMAIL WOULD BE SENT:")
+            # Check if SMTP is configured (MailHog or real SMTP)
+            if not self.settings.SMTP_HOST or self.settings.SMTP_HOST.strip() == "":
+                # Fallback to console logging if no SMTP configured
+                print("\n📧 EMAIL WOULD BE SENT (NO SMTP):")
                 print(f"To: {to_email}")
                 print(f"Subject: {subject}")
                 print(f"Body: {text_body}")
                 print(f"HTML Body: {html_body}")
                 print("=" * 50)
                 return True
+            
 
             # For production, use actual SMTP
             msg = MIMEMultipart("alternative")
@@ -136,11 +138,17 @@ class SMTPEmailService(EmailService):
             msg.attach(text_part)
             msg.attach(html_part)
 
-            # Create secure connection with server and send email
-            context = ssl.create_default_context()
+            # Create connection with server and send email
             with smtplib.SMTP(self.settings.SMTP_HOST, self.settings.SMTP_PORT) as server:
-                server.starttls(context=context)
-                server.login(self.settings.SMTP_USER, self.settings.SMTP_PASSWORD)
+                # Use TLS only if not MailHog (port 1025 = MailHog)
+                if self.settings.SMTP_PORT != 1025:
+                    context = ssl.create_default_context()
+                    server.starttls(context=context)
+                
+                # Login only if credentials provided
+                if self.settings.SMTP_USER and self.settings.SMTP_PASSWORD:
+                    server.login(self.settings.SMTP_USER, self.settings.SMTP_PASSWORD)
+                
                 server.send_message(msg)
 
             return True

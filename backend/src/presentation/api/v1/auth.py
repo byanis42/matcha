@@ -146,7 +146,10 @@ async def request_password_reset(
             reset_token=result.get("reset_token"),  # Only for development
         )
 
-    except Exception:
+    except Exception as e:
+        print(f"Password reset error: {type(e).__name__}: {str(e)}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Password reset request failed",

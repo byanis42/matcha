@@ -4,7 +4,7 @@ import './App.css';
 
 // Auth components
 import { AuthGuard, PublicRoute } from './components/auth';
-import { LoginPage, RegisterPage } from './pages/auth';
+import { LoginPage, RegisterPage, VerifyEmailPage } from './pages/auth';
 
 // Placeholder pages (to be implemented later)
 const DashboardPage = () => (
@@ -84,6 +84,10 @@ function App() {
                 <RegisterPage />
               </PublicRoute>
             }
+          />
+          <Route
+            path="/verify-email"
+            element={<VerifyEmailPage />}
           />
 
           {/* Protected routes (require authentication) */}

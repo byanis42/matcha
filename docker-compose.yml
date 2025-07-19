@@ -28,7 +28,7 @@ services:
     networks:
       - matcha_network
 
-  # Adminer for database management (much simpler than pgAdmin)
+  # Adminer for database management
   adminer:
     image: adminer:latest
     container_name: matcha_adminer
@@ -39,6 +39,16 @@ services:
     networks:
       - matcha_network
 
+  # MailHog for email testing
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: matcha_mailhog
+    ports:
+      - "1025:1025"  # SMTP server
+      - "8025:8025"  # Web UI
+    networks:
+      - matcha_network
+
   # Backend API
   backend:
     build:
@@ -46,44 +56,46 @@ services:
       dockerfile: Dockerfile
     container_name: matcha_backend
     environment:
-      - DATABASE_URL=postgresql://matcha_user:matcha_password@db:5432/matcha
+      - DATABASE_URL=postgresql+asyncpg://matcha_user:matcha_password@db:5432/matcha
       - REDIS_URL=redis://redis:6379/0
       - ENVIRONMENT=development
       - SECRET_KEY=your-secret-key-change-in-production
       - CLOUDINARY_CLOUD_NAME=your-cloudinary-name
       - CLOUDINARY_API_KEY=your-cloudinary-api-key
       - CLOUDINARY_API_SECRET=your-cloudinary-api-secret
+      - SMTP_HOST=mailhog
+      - SMTP_PORT=1025
+      - SMTP_USER=""
+      - SMTP_PASSWORD=""
+      - EMAILS_FROM_EMAIL=noreply@matcha.dev
     ports:
       - "8000:8000"
-    volumes:
-      - ./backend:/app
-      - /app/.venv
     depends_on:
       - db
       - redis
     networks:
       - matcha_network
-    command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
+    restart: unless-stopped
 
-  # Frontend
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: matcha_frontend
-    environment:
-      - VITE_API_URL=http://localhost:8000
-      - VITE_WEBSOCKET_URL=ws://localhost:8000
-    ports:
-      - "5173:5173"
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-    depends_on:
-      - backend
-    networks:
-      - matcha_network
-    command: npm run dev
+  # Frontend (commented out - run locally with npm run dev)
+  # frontend:
+  #   build:
+  #     context: ./frontend
+  #     dockerfile: Dockerfile
+  #   container_name: matcha_frontend
+  #   environment:
+  #     - VITE_API_URL=http://localhost:8000
+  #     - VITE_WEBSOCKET_URL=ws://localhost:8000
+  #   ports:
+  #     - "5173:5173"
+  #   volumes:
+  #     - ./frontend:/app
+  #     - /app/node_modules
+  #   depends_on:
+  #     - backend
+  #   networks:
+  #     - matcha_network
+  #   command: npm run dev
 
 volumes:
   postgres_data:

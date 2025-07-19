@@ -25,6 +25,9 @@ RUN uv sync --frozen
 # Copy project
 COPY . .
 
+# Make start script executable
+RUN chmod +x start.sh
+
 # Create non-root user
 RUN useradd --create-home --shell /bin/bash matcha
 RUN chown -R matcha:matcha /app
@@ -33,5 +36,5 @@ USER matcha
 # Expose port
 EXPOSE 8000
 
-# Default command
-CMD ["uv", "run", "uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+# Use start script that handles DB wait and migrations
+CMD ["./start.sh"]
