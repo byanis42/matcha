@@ -18,7 +18,7 @@ class SMTPEmailService(EmailService):
         subject = "Verify Your Email - Matcha"
 
         # In development, we'll use a simple verification URL
-        verification_url = f"http://localhost:5173/verify-email?token={token}&email={email}"
+        verification_url = f"http://localhost:5174/verify-email?token={token}&email={email}"
 
         html_body = f"""
         <html>
@@ -56,7 +56,7 @@ class SMTPEmailService(EmailService):
         """Send password reset email"""
         subject = "Reset Your Password - Matcha"
 
-        reset_url = f"http://localhost:5173/reset-password?token={token}&email={email}"
+        reset_url = f"http://localhost:5174/reset-password?token={token}&email={email}"
 
         html_body = f"""
         <html>

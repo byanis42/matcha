@@ -168,9 +168,9 @@ The codebase follows strict **Clean Architecture** with dependency inversion:
 **Frontend:**
 - **Framework**: React 18 with TypeScript
 - **Build Tool**: Vite (ultra-fast development and build)
-- **Styling**: Tailwind CSS (utility-first CSS framework)
+- **Styling**: Tailwind CSS (utility-first CSS framework) + shadcn/ui (component system)
 - **State Management**: Zustand (lightweight state management)
-- **API Client**: React Query (@tanstack/react-query) for cache/API management
+- **API Client**: Native fetch API with custom client + React Query (@tanstack/react-query) for cache/API management
 - **Forms**: React Hook Form for form management
 - **Real-time**: Socket.io-client for WebSocket communication
 - **Maps**: Leaflet.js for interactive maps (bonus feature)
@@ -188,6 +188,7 @@ The codebase follows strict **Clean Architecture** with dependency inversion:
 - **Code Quality**: Ruff (Python linting/formatting), ESLint (JS/TS linting)
 - **Pre-commit Hooks**: Automated code quality checks
 - **Type Checking**: MyPy (Python), TypeScript (frontend)
+- **Documentation Context**: Context7 MCP for up-to-date library documentation
 
 ## Development Patterns
 
@@ -207,6 +208,63 @@ The codebase follows strict **Clean Architecture** with dependency inversion:
 - **Integration Tests**: Test repository implementations with database
 - **E2E Tests**: Test complete API workflows
 - Use `test_entities.py` for quick domain model validation
+
+### API Client Architecture
+- **Native Fetch**: Modern browser fetch API instead of Axios (lighter, native, no dependencies)
+- **Singleton Pattern**: Single API client instance with token management
+- **Automatic Token Refresh**: Handles 401 responses with transparent token refresh
+- **Request/Response Logging**: Debug logging for development (similar to Axios interceptors)
+- **Error Handling**: Consistent error formatting and network error detection
+- **Timeout Support**: Configurable request timeouts with AbortController
+- **Type Safety**: Full TypeScript support with generic response types
+
+### UI Component System (shadcn/ui)
+**MANDATORY**: All frontend components MUST use shadcn/ui with Radix UI primitives
+
+- **Component Library**: shadcn/ui components built on Radix UI primitives
+- **Styling**: Tailwind CSS with CSS variables for theming
+- **Accessibility**: Full WAI-ARIA compliance through Radix UI
+- **Customization**: Use `cn()` utility for conditional class names
+- **Forms**: Integrate with React Hook Form using `FormField`, `FormItem`, `FormLabel`, `FormControl`, `FormMessage`
+- **Notifications**: Use shadcn/ui `toast` system with `useToast` hook
+- **Icons**: Lucide React for consistent iconography
+- **Configuration**: Managed via `components.json` with "new-york" style
+- **Installation**: Use `npx shadcn@latest add <component>` for new components
+- **Import Paths**: Use relative imports (`../../lib/utils`) in generated components
+
+**Required Components**:
+- `Button`, `Input`, `Label` for forms
+- `Card` for content containers  
+- `Form` components for validation
+- `Toast` for notifications
+- `Toaster` component in app root
+
+**Key Patterns**:
+```typescript
+// Form with validation
+<Form {...form}>
+  <FormField
+    control={form.control}
+    name="email"
+    render={({ field }) => (
+      <FormItem>
+        <FormLabel>Email</FormLabel>
+        <FormControl>
+          <Input {...field} type="email" />
+        </FormControl>
+        <FormMessage />
+      </FormItem>
+    )}
+  />
+</Form>
+
+// Toast notifications
+const { toast } = useToast()
+toast({
+  title: "Success",
+  description: "Operation completed successfully",
+})
+```
 
 ### Error Handling
 - Domain exceptions in `core/exceptions/`
@@ -237,3 +295,19 @@ The codebase follows strict **Clean Architecture** with dependency inversion:
 - `src/application/use_cases/` - Business workflows organized by domain
 - `src/infrastructure/` - External integrations and concrete implementations
 - `src/presentation/` - API endpoints and WebSocket handlers
+- `frontend/src/services/api/fetchClient.ts` - Native fetch-based API client (replaces Axios)
+- `.clauderules` - Context7 MCP auto-invocation rules for documentation
+
+## Context7 Integration
+
+**Context7 MCP Server** provides up-to-date documentation for libraries used in this project:
+
+- **Auto-invocation**: Automatically provides current docs when discussing code examples, setup, or library usage
+- **Supported Libraries**: FastAPI, React, SQLAlchemy, Pydantic, TypeScript, Tailwind, Docker, PostgreSQL, Redis, and more
+- **Usage**: Add "use context7" to prompts for explicit documentation fetching, or rely on auto-rules
+- **Library IDs**: Use specific library IDs like `/fastapi/fastapi` or `/react/react` for targeted documentation
+
+**Benefits**:
+- No outdated documentation or hallucinated APIs
+- Version-specific code examples
+- Up-to-date best practices and patterns

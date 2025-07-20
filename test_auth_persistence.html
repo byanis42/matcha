@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auth Persistence Test</title>
+</head>
+<body>
+    <h1>Authentication Persistence Test</h1>
+    <div id="results"></div>
+    
+    <script>
+        const results = document.getElementById('results');
+        
+        function log(message) {
+            results.innerHTML += `<p>${message}</p>`;
+            console.log(message);
+        }
+        
+        // Test 1: Check if tokens can be stored
+        log('=== Testing Token Storage ===');
+        
+        // Simulate auth storage like Zustand
+        const testAuthState = {
+            state: {
+                user: { id: 11, username: 'testuser' },
+                access_token: 'test_access_token',
+                refresh_token: 'test_refresh_token',
+                isAuthenticated: true
+            }
+        };
+        
+        localStorage.setItem('auth-storage', JSON.stringify(testAuthState));
+        log('✓ Stored test auth state in localStorage');
+        
+        // Test 2: Check if tokens can be retrieved
+        const retrieved = localStorage.getItem('auth-storage');
+        if (retrieved) {
+            const parsed = JSON.parse(retrieved);
+            log('✓ Retrieved auth state from localStorage');
+            log(`Access token: ${parsed.state.access_token.substring(0, 20)}...`);
+            log(`Refresh token: ${parsed.state.refresh_token.substring(0, 20)}...`);
+        } else {
+            log('✗ Failed to retrieve auth state');
+        }
+        
+        // Test 3: Test API client token restoration
+        log('=== Testing API Client Token Restoration ===');
+        
+        class TestFetchClient {
+            constructor() {
+                this.restoreTokensFromStorage();
+            }
+            
+            restoreTokensFromStorage() {
+                try {
+                    const authStorage = localStorage.getItem('auth-storage');
+                    if (authStorage) {
+                        const parsed = JSON.parse(authStorage);
+                        if (parsed.state?.access_token && parsed.state?.refresh_token) {
+                            this.accessToken = parsed.state.access_token;
+                            this.refreshToken = parsed.state.refresh_token;
+                            log('✓ API Client restored tokens from localStorage');
+                            log(`Access token: ${this.accessToken.substring(0, 20)}...`);
+                        }
+                    }
+                } catch (error) {
+                    log('✗ Failed to restore tokens: ' + error.message);
+                }
+            }
+        }
+        
+        const testClient = new TestFetchClient();
+        
+        // Test 4: Clear tokens
+        log('=== Testing Token Clearing ===');
+        localStorage.removeItem('auth-storage');
+        log('✓ Cleared auth storage');
+        
+        // Check if cleared
+        const clearedCheck = localStorage.getItem('auth-storage');
+        if (!clearedCheck) {
+            log('✓ Auth storage successfully cleared');
+        } else {
+            log('✗ Auth storage still exists after clearing');
+        }
+    </script>
+</body>
+</html>

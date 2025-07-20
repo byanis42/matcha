@@ -13,7 +13,7 @@ interface LoginFormProps {
   redirectTo?: string;
 }
 
-export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, redirectTo }) => {
+export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
   const [showPassword, setShowPassword] = useState(false);
   const { login, isLoading } = useAuth();
 
@@ -36,12 +36,8 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, redirectTo }) =
       
       if (result.success) {
         toast.success('Welcome back!');
+        // Only call onSuccess, let the parent handle navigation
         onSuccess?.();
-        
-        // Redirect if specified
-        if (redirectTo) {
-          window.location.href = redirectTo;
-        }
       } else {
         toast.error(result.error || 'Login failed');
         

@@ -61,7 +61,6 @@ export const LoginPage: React.FC = () => {
             <CardContent>
               <LoginForm 
                 onSuccess={handleLoginSuccess}
-                redirectTo={from}
               />
             </CardContent>
           </Card>

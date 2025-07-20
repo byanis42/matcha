@@ -1,0 +1,9 @@
+# Auto-invoke Context7 for code examples, setup, configuration, and library documentation
+[[calls]]
+match = "when the user requests code examples, setup or configuration steps, or library/API documentation, or mentions specific technologies like FastAPI, React, SQLAlchemy, Pydantic, TypeScript, Tailwind, Docker, PostgreSQL, Redis, or other libraries"
+tool = "context7"
+
+# Auto-invoke Context7 for framework-specific questions
+[[calls]]
+match = "when discussing implementation details, best practices, or usage patterns for any programming library or framework"
+tool = "context7"

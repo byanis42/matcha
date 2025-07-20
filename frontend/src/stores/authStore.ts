@@ -189,7 +189,8 @@ export const useAuthStore = create<AuthStore>()(
             error: null,
           });
         } catch (error: any) {
-          // If getting current user fails, clear auth state
+          // If getting current user fails, clear auth state and tokens
+          authService.clearTokens();
           set({
             ...initialState,
             isLoading: false,
@@ -204,6 +205,8 @@ export const useAuthStore = create<AuthStore>()(
       },
 
       initialize: async () => {
+        set({ isLoading: true, error: null });
+        
         const { access_token, refresh_token } = get();
         
         if (access_token && refresh_token) {
@@ -214,9 +217,16 @@ export const useAuthStore = create<AuthStore>()(
           try {
             await get().getCurrentUser();
           } catch (error) {
-            // Tokens invalid, clear auth state
-            set(initialState);
+            // Tokens invalid, clear auth state and tokens
+            authService.clearTokens();
+            set({
+              ...initialState,
+              isLoading: false,
+            });
           }
+        } else {
+          // No tokens, just stop loading
+          set({ isLoading: false });
         }
       },
     }),
