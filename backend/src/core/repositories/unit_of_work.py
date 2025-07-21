@@ -1,9 +1,11 @@
 from abc import ABC, abstractmethod
 from typing import Any
 
-from ..services.email_service import EmailService
-from .user_repository import UserRepository
-from .verification_token_repository import VerificationTokenRepository
+from src.core.repositories.user_repository import UserRepository
+from src.core.repositories.verification_token_repository import (
+    VerificationTokenRepository,
+)
+from src.core.services.email_service import EmailService
 
 
 class AbstractUnitOfWork(ABC):

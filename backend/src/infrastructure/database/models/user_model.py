@@ -33,7 +33,9 @@ class UserModel(Base):
 
     # Relationships
     profile = relationship("UserProfileModel", back_populates="user", uselist=False)
-    verification_tokens = relationship("VerificationTokenModel", back_populates="user", cascade="all, delete-orphan")
+    verification_tokens = relationship(
+        "VerificationTokenModel", back_populates="user", cascade="all, delete-orphan"
+    )
 
 
 class UserProfileModel(Base):

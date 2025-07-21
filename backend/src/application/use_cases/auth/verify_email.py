@@ -1,9 +1,9 @@
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 
-from ....core.entities.verification_token import TokenType
-from ....core.repositories.unit_of_work import AbstractUnitOfWork
-from ....shared.exceptions import NotFoundException, ValidationException
+from src.core.entities.verification_token import TokenType
+from src.core.repositories.unit_of_work import AbstractUnitOfWork
+from src.shared.exceptions import NotFoundException, ValidationException
 
 
 class VerifyEmailUseCase:
@@ -19,7 +19,9 @@ class VerifyEmailUseCase:
                 token_str = verification_data["token"]
 
                 # Get verification token
-                verification_token = await self.uow.verification_tokens.get_by_token(token_str)
+                verification_token = await self.uow.verification_tokens.get_by_token(
+                    token_str
+                )
                 if not verification_token:
                     raise ValidationException("Invalid verification token")
 
@@ -28,7 +30,9 @@ class VerifyEmailUseCase:
                     if verification_token.is_expired():
                         raise ValidationException("Verification token has expired")
                     else:
-                        raise ValidationException("Verification token has already been used")
+                        raise ValidationException(
+                            "Verification token has already been used"
+                        )
 
                 # Check if it's an email verification token
                 if verification_token.token_type != TokenType.EMAIL_VERIFICATION:
@@ -50,7 +54,7 @@ class VerifyEmailUseCase:
 
                 # Verify email
                 user.verify_email()
-                user.updated_at = datetime.utcnow()
+                user.updated_at = datetime.now(UTC)
 
                 # Mark token as used
                 verification_token.use_token()

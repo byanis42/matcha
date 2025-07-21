@@ -1,15 +1,15 @@
 import secrets
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 
 from pydantic import ValidationError
 
-from ....core.entities.user import User, UserStatus
-from ....core.entities.verification_token import VerificationToken
-from ....core.repositories.unit_of_work import AbstractUnitOfWork
-from ....core.value_objects.email import Email
-from ....shared.exceptions import DuplicateResourceException, ValidationException
-from ....shared.security import hash_password
+from src.core.entities.user import User, UserStatus
+from src.core.entities.verification_token import VerificationToken
+from src.core.repositories.unit_of_work import AbstractUnitOfWork
+from src.core.value_objects.email import Email
+from src.shared.exceptions import DuplicateResourceException, ValidationException
+from src.shared.security import hash_password
 
 
 class RegisterUserUseCase:
@@ -44,8 +44,8 @@ class RegisterUserUseCase:
                     last_name=user_data["last_name"],
                     status=UserStatus.PENDING_VERIFICATION,
                     email_verified=False,
-                    created_at=datetime.utcnow(),
-                    updated_at=datetime.utcnow(),
+                    created_at=datetime.now(UTC),
+                    updated_at=datetime.now(UTC),
                 )
 
                 # Save user to repository
@@ -54,8 +54,7 @@ class RegisterUserUseCase:
                 # Generate verification token
                 verification_token_str = secrets.token_urlsafe(32)
                 verification_token = VerificationToken.create_email_verification_token(
-                    user_id=created_user.id,
-                    token=verification_token_str
+                    user_id=created_user.id, token=verification_token_str
                 )
 
                 # Save verification token
@@ -65,7 +64,7 @@ class RegisterUserUseCase:
                 email_sent = await self.uow.email_service.send_verification_email(
                     email=str(created_user.email),
                     username=created_user.username,
-                    token=verification_token_str
+                    token=verification_token_str,
                 )
 
                 # Commit the transaction

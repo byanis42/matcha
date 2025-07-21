@@ -1,12 +1,12 @@
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
 
 from pydantic import BaseModel, ConfigDict, field_validator
 
-from ..value_objects.age import Age
-from ..value_objects.email import Email
-from ..value_objects.fame_rating import FameRating
-from ..value_objects.location import Location
+from src.core.value_objects.age import Age
+from src.core.value_objects.email import Email
+from src.core.value_objects.fame_rating import FameRating
+from src.core.value_objects.location import Location
 
 
 class UserStatus(str, Enum):
@@ -67,7 +67,7 @@ class User(BaseModel):
         self.status = UserStatus.BANNED
 
     def update_last_seen(self) -> None:
-        self.last_seen = datetime.utcnow()
+        self.last_seen = datetime.now(UTC)
 
     @property
     def full_name(self) -> str:

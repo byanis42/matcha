@@ -64,6 +64,7 @@ async def register(
     except Exception as e:
         print(f"Registration error: {type(e).__name__}: {str(e)}")
         import traceback
+
         traceback.print_exc()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -149,6 +150,7 @@ async def request_password_reset(
     except Exception as e:
         print(f"Password reset error: {type(e).__name__}: {str(e)}")
         import traceback
+
         traceback.print_exc()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

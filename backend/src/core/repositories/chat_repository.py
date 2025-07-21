@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from ..entities.chat import Conversation, Message, Notification
+from src.core.entities.chat import Conversation, Message, Notification
 
 
 class ChatRepository(ABC):

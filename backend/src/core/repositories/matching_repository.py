@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from ..entities.matching import BlockedUser, Like, Match, Report, Visit
+from src.core.entities.matching import BlockedUser, Like, Match, Report, Visit
 
 
 class MatchingRepository(ABC):

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
 
 from pydantic import BaseModel, ConfigDict, field_validator
@@ -50,7 +50,7 @@ class Message(BaseModel):
 
     def mark_as_read(self) -> None:
         self.status = MessageStatus.READ
-        self.read_at = datetime.utcnow()
+        self.read_at = datetime.now(UTC)
 
     def mark_as_delivered(self) -> None:
         if self.status == MessageStatus.SENT:
@@ -120,7 +120,7 @@ class Conversation(BaseModel):
 
     def update_last_message(self, message_id: int) -> None:
         self.last_message_id = message_id
-        self.last_message_at = datetime.utcnow()
+        self.last_message_at = datetime.now(UTC)
 
 
 class NotificationType(str, Enum):
@@ -181,7 +181,7 @@ class Notification(BaseModel):
 
     def mark_as_read(self) -> None:
         self.read = True
-        self.read_at = datetime.utcnow()
+        self.read_at = datetime.now(UTC)
 
     def is_read(self) -> bool:
         return self.read

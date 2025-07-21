@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from ..entities.verification_token import TokenType, VerificationToken
+from src.core.entities.verification_token import TokenType, VerificationToken
 
 
 class VerificationTokenRepository(ABC):
@@ -17,7 +17,9 @@ class VerificationTokenRepository(ABC):
         pass
 
     @abstractmethod
-    async def get_valid_token(self, user_id: int, token_type: TokenType) -> VerificationToken | None:
+    async def get_valid_token(
+        self, user_id: int, token_type: TokenType
+    ) -> VerificationToken | None:
         """Get valid (not expired, not used) token for user and type"""
         pass
 

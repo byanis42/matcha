@@ -1,7 +1,7 @@
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class TokenType(str, Enum):
@@ -20,11 +20,11 @@ class VerificationToken(BaseModel):
     token_type: TokenType
     expires_at: datetime
     used: bool = False
-    created_at: datetime | None = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
     def is_expired(self) -> bool:
         """Check if token is expired"""
-        return datetime.utcnow() > self.expires_at
+        return datetime.now(UTC) > self.expires_at
 
     def is_valid(self) -> bool:
         """Check if token is valid (not expired and not used)"""
@@ -35,25 +35,27 @@ class VerificationToken(BaseModel):
         self.used = True
 
     @classmethod
-    def create_email_verification_token(cls, user_id: int, token: str) -> "VerificationToken":
+    def create_email_verification_token(
+        cls, user_id: int, token: str
+    ) -> "VerificationToken":
         """Create an email verification token"""
-        expires_at = datetime.utcnow() + timedelta(hours=24)  # 24 hours
+        expires_at = datetime.now(UTC) + timedelta(hours=24)  # 24 hours
         return cls(
             user_id=user_id,
             token=token,
             token_type=TokenType.EMAIL_VERIFICATION,
             expires_at=expires_at,
-            created_at=datetime.utcnow()
         )
 
     @classmethod
-    def create_password_reset_token(cls, user_id: int, token: str) -> "VerificationToken":
+    def create_password_reset_token(
+        cls, user_id: int, token: str
+    ) -> "VerificationToken":
         """Create a password reset token"""
-        expires_at = datetime.utcnow() + timedelta(hours=1)  # 1 hour
+        expires_at = datetime.now(UTC) + timedelta(hours=1)  # 1 hour
         return cls(
             user_id=user_id,
             token=token,
             token_type=TokenType.PASSWORD_RESET,
             expires_at=expires_at,
-            created_at=datetime.utcnow()
         )

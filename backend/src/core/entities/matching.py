@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
 
 from pydantic import BaseModel, ConfigDict, field_validator
@@ -179,4 +179,4 @@ class Report(BaseModel):
 
     def resolve(self) -> None:
         self.resolved = True
-        self.resolved_at = datetime.utcnow()
+        self.resolved_at = datetime.now(UTC)

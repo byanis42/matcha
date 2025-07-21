@@ -24,7 +24,9 @@ class VerificationTokenRepositoryImpl(VerificationTokenRepository):
         db_token = VerificationTokenModel(
             user_id=token.user_id,
             token=token.token,
-            token_type=token.token_type if isinstance(token.token_type, str) else token.token_type.value,
+            token_type=token.token_type
+            if isinstance(token.token_type, str)
+            else token.token_type.value,
             expires_at=token.expires_at,
             used=token.used,
             created_at=token.created_at,
@@ -44,7 +46,9 @@ class VerificationTokenRepositoryImpl(VerificationTokenRepository):
         db_token = result.scalar_one_or_none()
         return self._to_entity(db_token) if db_token else None
 
-    async def get_valid_token(self, user_id: int, token_type: TokenType) -> VerificationToken | None:
+    async def get_valid_token(
+        self, user_id: int, token_type: TokenType
+    ) -> VerificationToken | None:
         """Get valid (not expired, not used) token for user and type"""
         now = datetime.utcnow()
         result = await self.db.execute(
@@ -52,7 +56,9 @@ class VerificationTokenRepositoryImpl(VerificationTokenRepository):
             .where(
                 and_(
                     VerificationTokenModel.user_id == user_id,
-                    VerificationTokenModel.token_type == token_type if isinstance(token_type, str) else token_type.value,
+                    VerificationTokenModel.token_type == token_type
+                    if isinstance(token_type, str)
+                    else token_type.value,
                     not VerificationTokenModel.used,
                     VerificationTokenModel.expires_at > now,
                 )
@@ -84,7 +90,9 @@ class VerificationTokenRepositoryImpl(VerificationTokenRepository):
         """Delete all expired tokens and return count"""
         now = datetime.utcnow()
         result = await self.db.execute(
-            select(VerificationTokenModel).where(VerificationTokenModel.expires_at <= now)
+            select(VerificationTokenModel).where(
+                VerificationTokenModel.expires_at <= now
+            )
         )
         expired_tokens = result.scalars().all()
 
@@ -97,11 +105,12 @@ class VerificationTokenRepositoryImpl(VerificationTokenRepository):
     async def invalidate_user_tokens(self, user_id: int, token_type: TokenType) -> int:
         """Invalidate all tokens for a user of a specific type"""
         result = await self.db.execute(
-            select(VerificationTokenModel)
-            .where(
+            select(VerificationTokenModel).where(
                 and_(
                     VerificationTokenModel.user_id == user_id,
-                    VerificationTokenModel.token_type == token_type if isinstance(token_type, str) else token_type.value,
+                    VerificationTokenModel.token_type == token_type
+                    if isinstance(token_type, str)
+                    else token_type.value,
                     not VerificationTokenModel.used,
                 )
             )

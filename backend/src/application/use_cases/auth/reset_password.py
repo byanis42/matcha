@@ -1,12 +1,12 @@
 import secrets
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from ....core.entities.verification_token import TokenType, VerificationToken
-from ....core.repositories.unit_of_work import AbstractUnitOfWork
-from ....core.value_objects.email import Email
-from ....shared.exceptions import NotFoundException, ValidationException
-from ....shared.security import hash_password
+from src.core.entities.verification_token import TokenType, VerificationToken
+from src.core.repositories.unit_of_work import AbstractUnitOfWork
+from src.core.value_objects.email import Email
+from src.shared.exceptions import NotFoundException, ValidationException
+from src.shared.security import hash_password
 
 
 class ResetPasswordUseCase:
@@ -33,7 +33,7 @@ class ResetPasswordUseCase:
 
                 # Generate reset token
                 reset_token = secrets.token_urlsafe(32)
-                expires_at = datetime.utcnow() + timedelta(hours=1)  # 1 hour expiration
+                expires_at = datetime.now(UTC) + timedelta(hours=1)  # 1 hour expiration
 
                 # Store reset token in database
                 verification_token = VerificationToken(
@@ -41,17 +41,15 @@ class ResetPasswordUseCase:
                     token=reset_token,
                     token_type=TokenType.PASSWORD_RESET,
                     expires_at=expires_at,
-                    created_at=datetime.utcnow()
+                    created_at=datetime.now(UTC),
                 )
                 await self.uow.verification_tokens.create(verification_token)
 
                 # Send password reset email
                 await self.uow.email_service.send_password_reset_email(
-                    email=str(user.email),
-                    username=user.username,
-                    token=reset_token
+                    email=str(user.email), username=user.username, token=reset_token
                 )
-                
+
                 await self.uow.commit()
 
                 return {
@@ -81,7 +79,9 @@ class ResetPasswordUseCase:
                     raise NotFoundException("User not found")
 
                 # Get and validate reset token
-                verification_token = await self.uow.verification_tokens.get_by_token(token)
+                verification_token = await self.uow.verification_tokens.get_by_token(
+                    token
+                )
                 if not verification_token:
                     raise ValidationException("Invalid reset token")
 
@@ -105,7 +105,7 @@ class ResetPasswordUseCase:
 
                 # Update user password
                 user.password_hash = new_password_hash
-                user.updated_at = datetime.utcnow()
+                user.updated_at = datetime.now(UTC)
 
                 # Mark token as used
                 verification_token.used = True
