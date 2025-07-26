@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Any
 
+from src.core.repositories.profile_repository import ProfileRepository
 from src.core.repositories.user_repository import UserRepository
 from src.core.repositories.verification_token_repository import (
     VerificationTokenRepository,
@@ -13,8 +14,8 @@ class AbstractUnitOfWork(ABC):
 
     users: UserRepository
     verification_tokens: VerificationTokenRepository
+    profiles: ProfileRepository
     email_service: EmailService
-    # user_profiles: UserProfileRepository  # We'll add this when we implement profiles
     # matchings: MatchingRepository
     # chats: ChatRepository
 

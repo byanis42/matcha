@@ -27,3 +27,16 @@ export type {
   HttpMethod,
   RequestConfig,
 } from './api';
+
+// Profile types
+export type {
+  ProfileFormData,
+  LocationData,
+  UserProfile,
+} from './profile';
+
+export {
+  GENDER_OPTIONS,
+  SEXUAL_PREFERENCE_OPTIONS,
+  COMMON_INTERESTS,
+} from './profile';

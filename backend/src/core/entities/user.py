@@ -27,6 +27,7 @@ class User(BaseModel):
     last_name: str
     status: UserStatus = UserStatus.PENDING_VERIFICATION
     email_verified: bool = False
+    has_completed_profile: bool = False
     last_seen: datetime | None = None
     created_at: datetime | None = None
     updated_at: datetime | None = None
@@ -69,12 +70,15 @@ class User(BaseModel):
     def update_last_seen(self) -> None:
         self.last_seen = datetime.now(UTC)
 
+    def mark_profile_completed(self) -> None:
+        self.has_completed_profile = True
+
     @property
     def full_name(self) -> str:
         return f"{self.first_name} {self.last_name}"
 
     def can_be_matched(self) -> bool:
-        return self.is_active() and self.is_verified()
+        return self.is_active() and self.is_verified() and self.has_completed_profile
 
 
 class Gender(str, Enum):
@@ -112,6 +116,8 @@ class UserProfile(BaseModel):
     @field_validator("biography")
     @classmethod
     def validate_biography(cls, v):
+        if len(v) < 10:
+            raise ValueError("Biography must be at least 10 characters long")
         if len(v) > 500:
             raise ValueError("Biography cannot exceed 500 characters")
         return v

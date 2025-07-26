@@ -34,6 +34,9 @@ const initialState: AuthState = {
   error: null,
 };
 
+// Prevent multiple initialization calls
+let initializationPromise: Promise<void> | null = null;
+
 export const useAuthStore = create<AuthStore>()(
   persist(
     (set, get) => ({
@@ -205,28 +208,42 @@ export const useAuthStore = create<AuthStore>()(
       },
 
       initialize: async () => {
-        set({ isLoading: true, error: null });
-        
-        const { access_token, refresh_token } = get();
-        
-        if (access_token && refresh_token) {
-          // Set tokens in auth service
-          authService.setTokens(access_token, refresh_token);
+        // If already initializing, return the existing promise
+        if (initializationPromise) {
+          return initializationPromise;
+        }
+
+        initializationPromise = (async () => {
+          set({ isLoading: true, error: null });
           
-          // Verify tokens are still valid by getting current user
-          try {
-            await get().getCurrentUser();
-          } catch (error) {
-            // Tokens invalid, clear auth state and tokens
-            authService.clearTokens();
-            set({
-              ...initialState,
-              isLoading: false,
-            });
+          const { access_token, refresh_token } = get();
+          
+          if (access_token && refresh_token) {
+            // Set tokens in auth service
+            authService.setTokens(access_token, refresh_token);
+            
+            // Verify tokens are still valid by getting current user
+            try {
+              await get().getCurrentUser();
+            } catch (error) {
+              // Tokens invalid, clear auth state and tokens
+              authService.clearTokens();
+              set({
+                ...initialState,
+                isLoading: false,
+              });
+            }
+          } else {
+            // No tokens, just stop loading
+            set({ isLoading: false });
           }
-        } else {
-          // No tokens, just stop loading
-          set({ isLoading: false });
+        })();
+
+        try {
+          await initializationPromise;
+        } finally {
+          // Reset the promise so future calls can reinitialize if needed
+          initializationPromise = null;
         }
       },
     }),

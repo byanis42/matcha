@@ -27,6 +27,7 @@ class UserModel(Base):
     last_name = Column(String(50), nullable=False)
     status = Column(String(20), default="pending_verification")
     email_verified = Column(Boolean, default=False)
+    has_completed_profile = Column(Boolean, default=False)
     last_seen = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

@@ -3,8 +3,9 @@ import { Toaster } from 'react-hot-toast';
 import './App.css';
 
 // Auth components
-import { AuthGuard, PublicRoute } from './components/auth';
+import { AuthGuard, PublicRoute, ProfileCompletionGuard } from './components/auth';
 import { LoginPage, RegisterPage, VerifyEmailPage, ForgotPasswordPage, ResetPasswordPage } from './pages/auth';
+import { ProfileSetupPage } from './pages/profile';
 
 // Placeholder pages (to be implemented later)
 const DashboardPage = () => (
@@ -104,10 +105,20 @@ function App() {
 
           {/* Protected routes (require authentication) */}
           <Route
+            path="/profile/setup"
+            element={
+              <AuthGuard>
+                <ProfileSetupPage />
+              </AuthGuard>
+            }
+          />
+          <Route
             path="/dashboard"
             element={
               <AuthGuard>
-                <DashboardPage />
+                <ProfileCompletionGuard>
+                  <DashboardPage />
+                </ProfileCompletionGuard>
               </AuthGuard>
             }
           />

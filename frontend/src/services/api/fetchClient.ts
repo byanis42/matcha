@@ -10,6 +10,7 @@ class FetchApiClient {
   private timeout: number;
   private accessToken: string | null = null;
   private refreshToken: string | null = null;
+  private refreshPromise: Promise<any> | null = null;
 
   constructor() {
     this.baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1';
@@ -50,10 +51,15 @@ class FetchApiClient {
       
       // Prepare headers
       const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
         ...config.headers,
         ...options.headers as Record<string, string>,
       };
+
+      // Only set Content-Type to JSON if it's not FormData
+      const isFormData = options.body instanceof FormData;
+      if (!isFormData && !headers['Content-Type']) {
+        headers['Content-Type'] = 'application/json';
+      }
 
       // Add auth token if available
       if (this.accessToken) {
@@ -65,7 +71,7 @@ class FetchApiClient {
         console.log('API Request:', {
           url: fullUrl,
           method: options.method,
-          data: options.body ? JSON.parse(options.body as string) : undefined,
+          data: isFormData ? 'FormData' : options.body ? JSON.parse(options.body as string) : undefined,
           headers
         });
       }
@@ -81,7 +87,12 @@ class FetchApiClient {
       // Handle token refresh for 401 errors
       if (response.status === 401 && this.refreshToken && !url.includes('/auth/refresh')) {
         try {
-          const newTokenData = await this.refreshAccessToken();
+          // If already refreshing, wait for the existing refresh
+          if (!this.refreshPromise) {
+            this.refreshPromise = this.refreshAccessToken();
+          }
+          
+          const newTokenData = await this.refreshPromise;
           this.setTokens(newTokenData.access_token, this.refreshToken);
           
           // Retry the original request with new token
@@ -93,10 +104,13 @@ class FetchApiClient {
 
           return this.handleResponse<T>(retryResponse);
         } catch (refreshError) {
-          // Refresh failed, clear tokens and redirect to login
+          // Refresh failed, clear tokens - let components handle routing
           this.clearTokens();
-          window.location.href = '/auth/login';
+          console.error('Token refresh failed, tokens cleared');
           throw refreshError;
+        } finally {
+          // Clear the refresh promise
+          this.refreshPromise = null;
         }
       }
 

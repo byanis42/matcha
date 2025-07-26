@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from .config.settings import get_settings
 from .infrastructure.database.session import init_db
 from .presentation.api.v1.auth import router as auth_router
+from .presentation.api.v1.profile import router as profile_router
 
 settings = get_settings()
 
@@ -37,6 +38,7 @@ app.add_middleware(
 
 # Include routers
 app.include_router(auth_router, prefix=settings.API_V1_STR)
+app.include_router(profile_router, prefix=settings.API_V1_STR)
 
 
 # Health check endpoint

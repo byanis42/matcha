@@ -55,6 +55,7 @@ async def get_current_user(
                 "username": user.username,
                 "email": str(user.email),
                 "status": user.status,
+                "has_completed_profile": user.has_completed_profile,
             }
 
     except AuthenticationException as e:

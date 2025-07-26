@@ -25,6 +25,12 @@ class AuthorizationException(MatchaException):
     pass
 
 
+class ForbiddenException(MatchaException):
+    """Raised when access is forbidden"""
+
+    pass
+
+
 class NotFoundException(MatchaException):
     """Raised when a resource is not found"""
 

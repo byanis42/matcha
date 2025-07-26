@@ -2,6 +2,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...core.repositories.unit_of_work import AbstractUnitOfWork
 from ..external.email.smtp_email_service import SMTPEmailService
+from .repositories.profile_repository_impl import ProfileRepositoryImpl
 from .repositories.user_repository_impl import UserRepositoryImpl
 from .repositories.verification_token_repository_impl import (
     VerificationTokenRepositoryImpl,
@@ -17,9 +18,9 @@ class SqlAlchemyUnitOfWork(AbstractUnitOfWork):
     async def __aenter__(self) -> "SqlAlchemyUnitOfWork":
         self.users = UserRepositoryImpl(self.session)
         self.verification_tokens = VerificationTokenRepositoryImpl(self.session)
+        self.profiles = ProfileRepositoryImpl(self.session)
         self.email_service = SMTPEmailService()
         # Initialize other repositories here when we add them
-        # self.user_profiles = UserProfileRepositoryImpl(self.session)
         # self.matchings = MatchingRepositoryImpl(self.session)
         # self.chats = ChatRepositoryImpl(self.session)
         await super().__aenter__()  # type: ignore[misc]

@@ -6,6 +6,7 @@ export interface User {
   last_name: string;
   status: 'pending_verification' | 'active' | 'inactive' | 'banned';
   email_verified: boolean;
+  has_completed_profile: boolean;
   last_seen: string | null;
   created_at: string;
 }
